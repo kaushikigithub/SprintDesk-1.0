@@ -1,0 +1,214 @@
+openapi: 3.0.0
+info:
+  title: SprintDesk API
+  description: Agile project management API for small teams. Supports Projects → User Stories → Tasks hierarchy.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+
+paths:
+  /projects:
+    get:
+      summary: Get all projects
+      responses:
+        '200':
+          description: List of projects
+    post:
+      summary: Create a new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: Food Delivery App
+                description:
+                  type: string
+                  example: Our main product for Q2
+
+  /projects/{id}:
+    get:
+      summary: Get a project with its stories
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+    put:
+      summary: Update a project
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                status:
+                  type: string
+                  enum: [active, archived]
+    delete:
+      summary: Delete a project (cascades to stories and tasks)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+
+  /stories/project/{projectId}:
+    get:
+      summary: Get all stories for a project
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema:
+            type: integer
+
+  /stories:
+    post:
+      summary: Create a user story
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_id, title]
+              properties:
+                project_id:
+                  type: integer
+                title:
+                  type: string
+                  example: As a user I want to log in
+                description:
+                  type: string
+                priority:
+                  type: string
+                  enum: [low, medium, high]
+
+  /stories/{id}:
+    get:
+      summary: Get a story with its tasks
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+    put:
+      summary: Update a story status or details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [backlog, in_progress, done]
+                priority:
+                  type: string
+                  enum: [low, medium, high]
+    delete:
+      summary: Delete a story and its tasks
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+
+  /tasks/story/{storyId}:
+    get:
+      summary: Get all tasks for a story
+      parameters:
+        - in: path
+          name: storyId
+          required: true
+          schema:
+            type: integer
+
+  /tasks:
+    post:
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [story_id, title]
+              properties:
+                story_id:
+                  type: integer
+                title:
+                  type: string
+                assignee:
+                  type: string
+                  example: Rahul
+                due_date:
+                  type: string
+                  example: "2025-05-01"
+
+  /tasks/{id}:
+    put:
+      summary: Update a task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [todo, in_progress, done]
+                assignee:
+                  type: string
+    delete:
+      summary: Delete a task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+
+  /digest:
+    get:
+      summary: Get last 10 auto-generated daily digests
+      responses:
+        '200':
+          description: List of digest snapshots with task/story/project counts
+
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Server is running
